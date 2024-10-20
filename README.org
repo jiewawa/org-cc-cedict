@@ -1,0 +1,91 @@
+#+title: Org CC-CEDICT
+
+#+attr_org: :width 200px
+[[file:images/example.png]]
+
+This is a simple project which takes a plain text [[https://www.mdbg.net/chinese/dictionary?page=cedict][CC-CEDICT]] dictionary file as an input, and outputs a sdcv dictionary with special formatting to allow it to integrate nicely with Emacs Org-Mode.
+
+The project was specifically designed to be used with [[https://github.com/chenyanming/paw][paw]], and I have worked on initial Chinese support for the project.
+
+** Dependencies
+- sdcv
+- python
+  - pyglossary
+  - pypinyin
+
+** Creating the dictionary
+
+#+begin_src shell
+  pip install pyglossary
+  pip install pypinyin
+#+end_src
+
+#+begin_src shell
+  git clone https://github.com/jiewawa/org-cc-cedict.git
+  cd org-cc-cedict
+  python main.py PATH-TO-CC-CEDICT-FILE
+#+end_src
+
+** Org-Mode Custom Links
+The following Emacs Lisp code can be used to make Emacs style the words.
+#+begin_src emacs-lisp
+(defgroup org-chinese-colors nil
+  "Color Chinese characters based on the tone associated with the character"
+  :group 'convenience)
+
+(defface t1-face '((t :height 1.9 :foreground "red")) "Face for first tone." :group 'org-chinese-colors)
+(defface t2-face '((t :height 1.9 :foreground "green")) "Face for second tone." :group 'org-chinese-colors)
+(defface t3-face '((t :height 1.9 :foreground "blue")) "Face for third tone." :group 'org-chinese-colors)
+(defface t4-face '((t :height 1.9 :foreground "purple")) "Face for fourth tone." :group 'org-chinese-colors)
+(defface t5-face '((t :height 1.9 :foreground "gray")) "Face for neutral tone." :group 'org-chinese-colors)
+
+(defun my-modus-themes-custom-faces (&rest _)
+  (modus-themes-with-colors 
+    (custom-set-faces
+     `(t1-face ((t :height 1.9 :foreground ,red-intense)))
+     `(t2-face ((t :height 1.9 :foreground ,green-intense)))
+     `(t3-face ((t :height 1.9 :foreground ,blue-intense)))
+     `(t4-face ((t :height 1.9 :foreground ,magenta-warmer)))
+     `(t5-face ((t :height 1.9 :foreground ,comment))))))
+
+(add-hook 'modus-themes-after-load-theme-hook #'my-modus-themes-custom-faces)
+
+(org-link-set-parameters "t1" :face 't1-face
+			 :export (lambda (path desc backend)
+				   (cond
+				    ((eq 'html backend)
+				     (format "<font class=\"t1\">%s</font>"
+					     (or desc path))))))
+
+(org-link-set-parameters "t2" :face 't2-face
+			 :export (lambda (path desc backend)
+				   (cond
+				    ((eq 'html backend)
+				     (format "<font class=\"t2\">%s</font>"
+					     (or desc path))))))
+
+
+(org-link-set-parameters "t3" :face 't3-face
+			 :export (lambda (path desc backend)
+				   (cond
+				    ((eq 'html backend)
+				     (format "<font class=\"t3\">%s</font>"
+					     (or desc path))))))
+
+
+(org-link-set-parameters "t4" :face 't4-face
+			 :export (lambda (path desc backend)
+				   (cond
+				    ((eq 'html backend)
+				     (format "<font class=\"t4\">%s</font>"
+					     (or desc path))))))
+
+(org-link-set-parameters "t5" :face 't5-face
+			 :export (lambda (path desc backend)
+				   (cond
+				    ((eq 'html backend)
+				     (format "<font class=\"t5\">%s</font>"
+					     (or desc path))))))
+#+end_src
+
+When exported to HTML, the word will be wrapped in a =<font>= tag and it can be styled with CSS. This is useful for exporting to Anki.
